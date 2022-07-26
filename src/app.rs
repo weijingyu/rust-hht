@@ -1,7 +1,11 @@
+use std::fs::File;
+use zip::ZipArchive;
+use tar::Archive;
+
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
-pub struct TemplateApp {
+pub struct TraceBrowserApp {
     // Example stuff:
     label: String,
 
@@ -10,7 +14,7 @@ pub struct TemplateApp {
     value: f32,
 }
 
-impl Default for TemplateApp {
+impl Default for TraceBrowserApp {
     fn default() -> Self {
         Self {
             // Example stuff:
@@ -20,7 +24,7 @@ impl Default for TemplateApp {
     }
 }
 
-impl TemplateApp {
+impl TraceBrowserApp {
     /// Called once before the first frame.
     pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
         // This is also where you can customized the look at feel of egui using
@@ -36,7 +40,7 @@ impl TemplateApp {
     }
 }
 
-impl eframe::App for TemplateApp {
+impl eframe::App for TraceBrowserApp {
     /// Called by the frame work to save state before shutdown.
     fn save(&mut self, storage: &mut dyn eframe::Storage) {
         eframe::set_value(storage, eframe::APP_KEY, self);
@@ -55,11 +59,9 @@ impl eframe::App for TemplateApp {
         egui::TopBottomPanel::top("top_panel").show(ctx, |ui| {
             // The top panel is often a good place for a menu bar:
             egui::menu::bar(ui, |ui| {
-                ui.menu_button("File", |ui| {
-                    if ui.button("Quit").clicked() {
-                        frame.quit();
-                    }
-                });
+                file_menu_button(ui, frame);
+                project_menu_button(ui);
+                
             });
         });
 
@@ -79,10 +81,12 @@ impl eframe::App for TemplateApp {
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
                 ui.horizontal(|ui| {
                     ui.spacing_mut().item_spacing.x = 0.0;
-                    ui.label("powered by ");
-                    ui.hyperlink_to("egui", "https://github.com/emilk/egui");
-                    ui.label(" and ");
-                    ui.hyperlink_to("eframe", "https://github.com/emilk/egui/tree/master/eframe");
+                    // ui.label("powered by ");
+                    // ui.hyperlink_to("egui", "https://github.com/emilk/egui");
+                    // ui.label(" and ");
+                    // ui.hyperlink_to("eframe", "https://github.com/emilk/egui/tree/master/eframe");
+                    ui.label("A experimental tool by ");
+                    ui.colored_label(egui::Color32::BLUE, "VSC-E-5");
                 });
             });
         });
@@ -90,7 +94,7 @@ impl eframe::App for TemplateApp {
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
 
-            ui.heading("eframe template");
+            ui.heading("Project");
             ui.hyperlink("https://github.com/emilk/eframe_template");
             ui.add(egui::github_link_file!(
                 "https://github.com/emilk/eframe_template/blob/master/",
@@ -108,4 +112,35 @@ impl eframe::App for TemplateApp {
             });
         }
     }
+}
+
+fn file_menu_button(ui: &mut egui::Ui, frame: &mut eframe::Frame) {
+    ui.menu_button("File", |ui| {
+        if ui.button("Quit").clicked() {
+            frame.quit();
+        }
+    });
+}
+
+fn project_menu_button(ui: &mut egui::Ui) {
+    ui.menu_button("Project", |ui| {
+        if ui.button("Import ...").clicked() {
+            if let Some(path) = rfd::FileDialog::new().pick_file() {
+                let pdf_picked_path = path.display().to_string();
+
+                println!("path: {}", pdf_picked_path);
+                
+                import_pdx(&pdf_picked_path);
+            }
+            ui.close_menu();
+        }
+    });
+}
+
+fn import_pdx(pdf_path: &String) {
+    let pdx_file = File::open(pdf_path).unwrap();
+    let mut pdx = ZipArchive::new(pdx_file).unwrap();
+    pdx.extract("temp").unwrap();
+    // let mut pdx = Archive::new(File::open(pdf_path).unwrap());
+    // pdx.unpack("temp").unwrap();
 }

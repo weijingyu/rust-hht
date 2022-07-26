@@ -1,15 +1,15 @@
 [package]
-name = "eframe_template"
-default-run = "eframe_template_bin"
+name = "hht"
+default-run = "hht_bin"
 version = "0.1.0"
-authors = ["Emil Ernerfeldt <emil.ernerfeldt@gmail.com>"]
+authors = ["Wei Jingyu <weijingyu@csvw.com>"]
 edition = "2021"
 rust-version = "1.60"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [[bin]]
-name = "eframe_template_bin"
+name = "hht_bin"
 path = "src/main.rs"
 
 [lib]
@@ -17,9 +17,12 @@ crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-egui = "0.18.0"
+egui = "0.18"
 eframe = { version = "0.18.0", features = ["persistence"] }
 serde = { version = "1", features = ["derive"] } # You only need this if you want app persistence
+rfd = "0.8"
+zip = "0.6.2"
+tar = "0.4.38"
 
 # native:
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
